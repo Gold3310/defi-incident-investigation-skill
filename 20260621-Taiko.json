@@ -1,0 +1,102 @@
+{
+  "id": "Taiko-20260621",
+  "date": "2026-06-21",
+  "title": "Taiko canonical bridge and ERC20 vault forged-proof exploit",
+  "protocol": "Taiko",
+  "blockchain": ["ethereum"],
+  "category": ["bridge", "forged_message", "key_compromise", "offchain_backend_exploit", "signature_abuse"],
+  "ecosystem": "evm",
+  "language": ["solidity", "rust"],
+  "estimatedLoss": {
+    "totalUSD": "1748000",
+    "breakdown": [
+      {"asset": "ETH", "amount": "295.972", "convertedUSD": "512000", "note": "Gross bridge release. About 278 ETH reached the attacker; one forged 18 ETH relayer-fee message was processed by a third-party MEV bot, with 17 ETH later returned to the treasury and 1 ETH paid to the block builder."},
+      {"asset": "USDC", "amount": "675761.236201", "convertedUSD": "676000", "note": "649,761.236201 USDC was released by retryMessage and a later 26,000 USDC processMessage withdrawal completed the reported gross amount."},
+      {"asset": "crvUSD", "amount": "156832.011092154729015188", "convertedUSD": "157000"},
+      {"asset": "USDT", "amount": "138139.564343", "convertedUSD": "138000"},
+      {"asset": "TAIKO", "amount": "1990000", "convertedUSD": "172000", "note": "The attacker routed the tokens through a laundering hop to a centralized-exchange deposit address; Taiko says the deposit was frozen."},
+      {"asset": "WETH", "amount": "20.70482", "convertedUSD": "36000"},
+      {"asset": "WBTC", "amount": "0.42634415", "convertedUSD": "27000"},
+      {"asset": "CRV", "amount": "126160.973069281665593531", "convertedUSD": "26000"},
+      {"asset": "iZi + weETH", "amount": "2140403.026072231869425941 iZi; 0.530999165959580756 weETH", "convertedUSD": "4000", "note": "Combined line follows the official postmortem's approximate valuation."}
+    ],
+    "note": "This is gross protocol-custody outflow, not permanent user loss. Taiko reported approximately USD 1.75 million released, recollateralized the bridge 1:1 from Foundation and Labs resources, and made users whole. USD conversions are rounded incident-time estimates; token quantities are chain-backed amounts where available."
+  },
+  "attackTime": {
+    "startTime": "2026-06-21T19:03:59Z",
+    "endTime": "2026-06-22T05:40:00Z",
+    "isRange": true,
+    "date": "2026-06-21",
+    "note": "Setup began at 19:03:59 UTC. The last fraudulent proof was accepted at about 02:10 UTC on June 22; the Bridge and ERC20Vault were paused at 05:40 UTC, ending further withdrawals."
+  },
+  "description": "On the night of June 21, Taiko's Ethereum canonical Bridge and ERC20 token vault accepted a forged version of Taiko L2 state. The attacker used an exposed 3072-bit Raiko SGX enclave signing key together with an attestation check that failed to reject debug-mode enclaves. This allowed a genuine prover build to be re-signed as a debug enclave, registered on-chain, and used to produce correctly signed proofs over a fake L2 fork. The attacker forged proposal age so Taiko's intentional five-day permissionless proving fallback bypassed the prover whitelist, finalized fake checkpoints through the L1 Inbox and SignalService, and proved withdrawals with no legitimate source-chain MessageSent event. The opening batch registered two rogue instances and filed ten forged claims with too little gas, leaving them RETRIABLE. Later retryMessage calls released eight ERC20 positions, and processMessage calls released ETH, a second USDC amount, and TAIKO. Taiko's postmortem counts 39 forged withdrawal messages, 36 paid, including one 18 ETH relayer-fee message captured by a third-party MEV bot. About 278 ETH reached the attacker; stolen tokens were swapped through 0x9108 and consolidated at 0xA980. Daily limits and the emergency pause contained the loss; more than USD 11 million of bridge and vault assets did not move. The Foundation covered the shortfall, the bridge was recollateralized 1:1, and it reopened on July 2 under conservative quotas. Taiko states that no user suffered a permanent loss.",
+  "transactions": [
+    {"txHash": "0x2f44dc1b883522a88f9b0cbbdfabf9ec33884b69dd4326600c3fab7fb2277260", "blockchain": "ethereum", "role": "setup", "description": "Successful 19:03:59 UTC batch at block 25367938 from the primary EOA to executor 0xe0Df6FC36dEB38dd11dC53d327475C2B2B0ab98a; registered two rogue SGX instances, submitted the first forged proof, and filed ten forged claims that remained RETRIABLE."},
+    {"txHash": "0x017292a7de5fef52a3274e37dda5ace4c4d0cdafe91b7b4ac9c700f02fae35ee", "blockchain": "ethereum", "role": "exploit", "description": "Successful retryMessage at block 25368853, 22:07:23 UTC; ERC20Vault transferred 649,761.236201 USDC to 0x7506."},
+    {"txHash": "0x4986e4a4c8c541bc623bff9a6f1caa1795d92d0fcff8efef4d79d7ac4834ee61", "blockchain": "ethereum", "role": "exploit", "description": "Successful retryMessage at block 25368853, 22:07:23 UTC; ERC20Vault transferred 156,832.011092154729015188 crvUSD to 0x7506."},
+    {"txHash": "0x2eff2a4d084a595352fc930c8ea75542f138237f5cfb4b469860f82360c07f1b", "blockchain": "ethereum", "role": "exploit", "description": "Successful retryMessage at block 25368854, 22:07:35 UTC; ERC20Vault transferred 138,139.564343 USDT to 0x7506."},
+    {"txHash": "0xa6664be5a4cba3a403c998e7b0126197bb719fc28af9aa86c8c98f730da5a974", "blockchain": "ethereum", "role": "exploit", "description": "Successful retryMessage at block 25368854, 22:07:35 UTC; ERC20Vault transferred 20.70482 WETH to 0x7506."},
+    {"txHash": "0x50ba4f0feeea6a22e61e5379f5350a60a049379613d06d0d07018650bbf03efd", "blockchain": "ethereum", "role": "exploit", "description": "Successful retryMessage at block 25368855, 22:07:47 UTC; ERC20Vault transferred 126,160.973069281665593531 CRV to 0x7506."},
+    {"txHash": "0x2067b5d4bf676541b036f46f6d6cdcb8b51be96303dfd07f72597c50f1005e64", "blockchain": "ethereum", "role": "exploit", "description": "Successful retryMessage at block 25368855, 22:07:47 UTC; ERC20Vault transferred 0.42634415 WBTC to 0x7506."},
+    {"txHash": "0x0bf2478d2038b2a765b68d0cc02a5f6e1295f17fde5cdeef9f6f5916eddfa811", "blockchain": "ethereum", "role": "exploit", "description": "Successful retryMessage at block 25368856, 22:07:59 UTC; ERC20Vault transferred 2,140,403.026072231869425941 iZi to 0x7506."},
+    {"txHash": "0x0f163c55606820dba7dc863bd4d979f32bc6464059f48240415d1831b18ce002", "blockchain": "ethereum", "role": "exploit", "description": "Successful retryMessage at block 25368856, 22:07:59 UTC; ERC20Vault transferred 0.530999165959580756 weETH to 0x7506."},
+    {"txHash": "0xb8befb015a67de8f40890b1f8667c597c3b66a52b388ec1c6cd28637fd65dd13", "blockchain": "ethereum", "role": "exploit", "description": "Successful processMessage at block 25368908, 22:18:23 UTC; Bridge internally transferred 130 ETH to consolidation wallet 0xA980."},
+    {"txHash": "0x4a5c6d40b7523c84eb5f140802d063029781e6b3b215de9ac9bfc03986da67d8", "blockchain": "ethereum", "role": "exploit", "description": "Successful processMessage at block 25368910, 22:18:47 UTC; Bridge released a later 26,000 USDC withdrawal to 0x7506."},
+    {"txHash": "0x451423923ab3df56ce436a921d34d782681cf698b72ca61ad6b8a8b2aeee53b7", "blockchain": "ethereum", "role": "exploit", "description": "Successful processMessage at block 25368955, 22:28:11 UTC; ERC20Vault transferred 1,990,000 TAIKO to 0x7506."},
+    {"txHash": "0xccfc5ca63f68d4bcd74fddf281335e252f663c22b1da3bd40d805bd98ff83e4e", "blockchain": "ethereum", "role": "exploit", "description": "Successful third-party MEV-bot transaction at block 25369401, 23:57:35 UTC that processed the forged 18 ETH relayer-fee message; the fee went to the bot rather than the attacker."},
+    {"txHash": "0x68ff8e072ff76dc90af1cba793b5923eda87945052e078478e35e90aa7ef7955", "blockchain": "ethereum", "role": "exploit", "description": "Successful prove transaction at block 25370060, 02:10:23 UTC; the final fraudulent proof submitted before the emergency pause."}
+  ],
+  "attackers": [
+    {"address": "0x7506DeA0c38ca0B55364B22424374c5A1ae1B76a", "blockchain": "ethereum", "role": "primary_attacker", "accountType": "EOA", "description": "Primary wallet: registered rogue provers, submitted forged proofs and claims, received drained tokens, and initiated executor and swap flows."},
+    {"address": "0xA98035081fB739EbE9C8f80904668fb11438a846", "blockchain": "ethereum", "role": "consolidation", "accountType": "EOA", "description": "Consolidation wallet that received fraudulent ETH withdrawals and token-swap proceeds."},
+    {"address": "0x5FBc60A12Bc6635E7d587d8DaC52e4b1388b4990", "blockchain": "ethereum", "role": "consolidation", "accountType": "EOA", "description": "TAIKO laundering hop linked to the attacker in Taiko's postmortem."},
+    {"address": "0x3CC936b795A188F0e246cBB2D74C5Bd190aeCF18", "blockchain": "ethereum", "role": "consolidation", "accountType": "Exchange", "description": "Centralized-exchange deposit address that received approximately 1.99 million TAIKO. Inclusion identifies the destination used by the attacker and does not assert exchange-operator participation."},
+    {"address": "0x9108828e30f2de407aADb0aF677b4a9228e4AcD4", "blockchain": "ethereum", "role": "exploit_contract", "accountType": "Contract", "description": "Attacker-deployed swap contract used to convert stolen tokens."},
+    {"address": "0xe0Df6FC36dEB38dd11dC53d327475C2B2B0ab98a", "blockchain": "ethereum", "role": "exploit_contract", "accountType": "Contract", "description": "Attacker-deployed batching executor used to register SGX instances, submit the first forged proof, and mark fraudulent messages RETRIABLE."}
+  ],
+  "victims": [
+    {"address": "0xd60247c6848b7ca29eddf63aa924e53db6ddd8ec", "blockchain": "ethereum", "role": "vulnerable_contract", "accountType": "Contract", "description": "Taiko canonical Bridge proxy on Ethereum; accepted forged source-state proofs and released ETH and ERC20 withdrawals."},
+    {"address": "0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab", "blockchain": "ethereum", "role": "vulnerable_contract", "accountType": "Contract", "description": "Taiko ERC20Vault proxy on Ethereum; custody source of drained USDC, stablecoins, TAIKO, and other ERC20 assets."},
+    {"address": "0x6f21c543a4af5189ebdb0723827577e1ef57ef1f", "blockchain": "ethereum", "role": "protocol_contract", "accountType": "Contract", "description": "Taiko MainnetInbox proxy in the state-finalization path; fake L2 state was submitted through this verification surface."}
+  ],
+  "rootCause": "The root cause was an off-chain trust-model failure, not a break of Taiko's proving mathematics or a standalone Bridge Solidity bug. Taiko's 3072-bit RSA enclave signing private key was committed to the public Raiko repository, allowing an attacker to reproduce the approved MRSIGNER. The SGX registration attestation checked MRENCLAVE and MRSIGNER but failed to reject debug mode, so an attacker-controlled enclave could run the genuine prover code without SGX memory protection and control the proof-signing material. Once the attacker could forge a signed proof, a second design gap let them forge the proposal-age value used to open Taiko's intentional permissionless proving fallback after five days, bypassing the prover whitelist. The forged prover then finalized fake L2 checkpoints on Ethereum and proved withdrawals against the fake state.",
+  "attackVector": "1. Obtain the publicly committed Raiko enclave signing key and create a debug-mode enclave using the genuine prover measurement. 2. Register two rogue instances through SgxVerifier.registerInstance; the unchecked debug flag made their attestations acceptable. 3. Submit a forged proof and make a recent proposal appear older than the five-day permissionless-proving threshold. 4. Finalize a fake L2 fork through the L1 Inbox and SignalService, then submit forged withdrawals with no legitimate source-chain MessageSent event. 5. Use too-low gas limits so initial claims become RETRIABLE without paying; later call retryMessage to cash out ERC20 claims. 6. Call processMessage for ETH, USDC, and TAIKO as quotas refilled, then use swap, consolidation, and laundering wallets. 7. Quotas and the Security Council emergency pause stopped further withdrawals; recovery invalidated fraudulent checkpoints and stuck claims.",
+  "lessons": [
+    "Keep enclave signing keys out of public repositories, rotate them after exposure, and verify repository history rather than only current files.",
+    "SGX attestation must bind code identity and production security mode; matching MRSIGNER alone does not preserve the hardware trust boundary.",
+    "Permissionless liveness fallbacks must derive proposal age from canonical state, not attacker-controlled proof fields.",
+    "Bridge quotas should apply consistently to all asset paths and account for failed or retriable attempts; the failed 999 ETH claim materially limited the drain.",
+    "Emergency pause governance paths must be tested under incident conditions; initial pause proposals had an authorization problem before the successful emergency proposal.",
+    "A hard ZK-proof requirement, fresh attestation and revocation maintenance, independent review, and rehearsed emergency response provide defense in depth.",
+    "Keep gross custody outflow, attacker-fund recovery, and user reimbursement as separate accounting boundaries; users were made whole while some stolen funds remained frozen, returned, or unrecovered."
+  ],
+  "references": [
+    "https://paragraph.com/@taiko-labs/taiko-security-incident-a-postmortem-and-next-steps",
+    "https://x.com/taikoxyz/status/2068857506718515320",
+    "https://x.com/taikoxyz/status/2068858820332556566",
+    "https://x.com/taikoxyz/status/2071152294519767363",
+    "https://x.com/taikoxyz/status/2071836286541774894",
+    "https://x.com/taikoxyz/status/2072533556224548918",
+    "https://x.com/blockaid_/status/2068832205250412661",
+    "https://x.com/Phalcon_xyz/status/2068924424238321854",
+    "https://www.quillaudits.com/blog/hack-analysis/taiko-leaked-sgx-enclave-key",
+    "https://etherscan.io/tx/0x2f44dc1b883522a88f9b0cbbdfabf9ec33884b69dd4326600c3fab7fb2277260",
+    "https://etherscan.io/tx/0x017292a7de5fef52a3274e37dda5ace4c4d0cdafe91b7b4ac9c700f02fae35ee",
+    "https://etherscan.io/tx/0xb8befb015a67de8f40890b1f8667c597c3b66a52b388ec1c6cd28637fd65dd13",
+    "https://etherscan.io/tx/0x451423923ab3df56ce436a921d34d782681cf698b72ca61ad6b8a8b2aeee53b7",
+    "https://etherscan.io/tx/0x68ff8e072ff76dc90af1cba793b5923eda87945052e078478e35e90aa7ef7955",
+    "https://eth.blockscout.com/api/v2/transactions/0x2f44dc1b883522a88f9b0cbbdfabf9ec33884b69dd4326600c3fab7fb2277260",
+    "https://eth.blockscout.com/api/v2/transactions/0x017292a7de5fef52a3274e37dda5ace4c4d0cdafe91b7b4ac9c700f02fae35ee",
+    "https://eth.blockscout.com/api/v2/transactions/0xb8befb015a67de8f40890b1f8667c597c3b66a52b388ec1c6cd28637fd65dd13",
+    "https://eth.blockscout.com/api/v2/transactions/0x68ff8e072ff76dc90af1cba793b5923eda87945052e078478e35e90aa7ef7955",
+    "https://eth.blockscout.com/api/v2/addresses/0x7506DeA0c38ca0B55364B22424374c5A1ae1B76a/token-transfers?filter=from&items_count=50&block_number=25368955&index=0",
+    "https://etherscan.io/address/0x7506DeA0c38ca0B55364B22424374c5A1ae1B76a",
+    "https://etherscan.io/address/0xd60247c6848B7Ca29eDdF63AA924E53dB6Ddd8EC",
+    "https://etherscan.io/address/0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab"
+  ],
+  "metadata": {
+    "dateAdded": "2026-09-24",
+    "lastUpdated": "2026-09-24",
+    "human_verified": false
+  }
+}
